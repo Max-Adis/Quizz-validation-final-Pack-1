@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Programmation Arduino | Max Adis</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00d2ff;
+            --secondary: #3a7bd5;
+            --success: #2ecc71;
+            --error: #e74c3c;
+            --bg: #f4f7f6;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+        }
+        .quiz-wrapper {
+            width: 100%;
+            max-width: 600px;
+        }
+        .quiz-container {
+            background: white;
+            width: 100%;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            box-sizing: border-box;
+        }
+        .site-title {
+            text-align: center;
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 20px;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.25);
+        }
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background: #eee;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: 0.4s;
+        }
+        .step-text {
+            font-size: 14px;
+            color: #7f8c8d;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: block;
+        }
+        h2 {
+            font-size: 19px;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .option-btn {
+            padding: 15px;
+            border: 2px solid #edf2f7;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            background: white;
+            text-align: left;
+            font-size: 14px;
+        }
+        .option-btn:hover {
+            border-color: var(--primary);
+            background: #f0fbff;
+        }
+        .option-btn.selected {
+            border-color: var(--secondary);
+            background: #e0f4ff;
+            font-weight: 600;
+        }
+        .hidden { display: none; }
+        button#next-btn, button#submit-btn, #intro-screen button {
+            width: 100%;
+            margin-top: 25px;
+            padding: 15px;
+            background: var(--secondary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        #intro-screen { text-align: center; }
+        #intro-screen h1 { margin-top: 0; margin-bottom: 10px; font-size: 24px; }
+        #intro-screen p { margin-top: 0; margin-bottom: 20px; color: #666; }
+        #intro-screen input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+            text-align: center;
+        }
+        .result-item {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 5px solid;
+            font-size: 14px;
+        }
+        .res-correct { background: #d4edda; border-color: var(--success); color: #155724; }
+        .res-wrong { background: #f8d7da; border-color: var(--error); color: #721c24; }
+        .correction { font-size: 13px; display: block; margin-top: 5px; font-weight: 600; }
+        footer { text-align: center; margin-top: 10px; font-size: 12px; color: #f0f0f0; }
+        footer span { font-weight: 600; }
+        code { background: #eee; padding: 2px 4px; border-radius: 4px; font-family: monospace; }
+    </style>
+</head>
+<body>
+
+<div class="quiz-wrapper">
+    <div class="site-title">
+        Formation Max_Adis : Programmation & Algorithmique
+    </div>
+
+    <div class="quiz-container">
+        <div id="intro-screen">
+            <h1>💻 Quiz Programmation</h1>
+            <p>Validez vos connaissances sur le code Arduino (C++) pour terminer le Pack 1.</p>
+            <input type="text" id="user-name" placeholder="Nom et Prénom">
+            <input type="email" id="user-email" placeholder="Votre Email">
+            <button onclick="startQuiz()">Lancer le test de code</button>
+        </div>
+
+        <div id="quiz-screen" class="hidden">
+            <span class="step-text" id="step-counter">Question 1/10</span>
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+
+            <h2 id="question-text">Chargement...</h2>
+            <div class="options" id="options-container"></div>
+            <button id="next-btn" onclick="nextQuestion()">Question suivante</button>
+        </div>
+
+        <div id="result-screen" class="hidden">
+            <h2 style="text-align: center;">Rapport de Programmation 📊</h2>
+            <div id="score-display" style="text-align: center; font-size: 24px; font-weight: bold; margin-bottom: 20px;"></div>
+            <div id="final-list"></div>
+            <p style="text-align: center; font-size: 12px; color: #888; margin-top: 20px;">
+                Félicitations pour votre parcours avec Max_Adis !
+            </p>
+        </div>
+    </div>
+
+    <footer>
+        Conçu par <span>Max_Adis</span> © 2026
+    </footer>
+</div>
+
+<script>
+    const questions = [
+        { q: "Quelle fonction s'exécute une seule fois au démarrage de la carte ?", options: ["void loop()", "void start()", "void setup()"], ans: 2 },
+        { q: "Quelle fonction s'exécute en boucle infinie ?", options: ["void setup()", "void loop()", "void repeat()"], ans: 1 },
+        { q: "Quelle commande configure une broche comme une SORTIE ?", options: ["pinMode(broche, OUTPUT)", "digitalWrite(broche, HIGH)", "digitalRead(broche)"], ans: 0 },
+        { q: "Que signifie l'instruction digitalWrite(2, HIGH) ?", options: ["Lire l'état de la broche 2", "Envoyer du 5V (allumer) sur la broche 2", "Éteindre la broche 2"], ans: 1 },
+        { q: "Comment faire une pause de 2 secondes dans le code ?", options: ["wait(2000)", "pause(2)", "delay(2000)"], ans: 2 },
+        { q: "Dans l'IDE, que vérifie le bouton 'Vérifier' (le crochet ✓) ?", options: ["Si la carte est branchée", "S'il y a des erreurs de syntaxe dans le code", "Si le code est déjà sur la carte"], ans: 1 },
+        { q: "Quel symbole termine presque chaque ligne d'instruction en Arduino ?", options: ["Un point (.)", "Une virgule (,)", "Un point-virgule (;)"], ans: 2 },
+        { q: "Quelle commande permet d'éteindre une LED connectée à une broche ?", options: ["digitalWrite(broche, LOW)", "digitalWrite(broche, OFF)", "pinMode(broche, LOW)"], ans: 0 },
+        { q: "Pourquoi met-on des commentaires (commençant par //) ?", options: ["Pour que l'ordinateur les exécute", "Pour expliquer le code aux humains (ils sont ignorés par la carte)", "Pour ralentir le programme"], ans: 1 },
+        { q: "Si delay(1000) = 1 seconde, combien de millisecondes font 0,5 seconde ?", options: ["500", "50", "5000"], ans: 0 }
+    ];
+
+    let currentIdx = 0;
+    let score = 0;
+    let userAnswers = [];
+    let userName = "";
+    let userEmail = "";
+    let selectedOption = null;
+
+    function startQuiz() {
+        userName = document.getElementById('user-name').value;
+        userEmail = document.getElementById('user-email').value;
+        if (!userName || !userEmail) return alert("Veuillez remplir vos informations.");
+
+        document.getElementById('intro-screen').classList.add('hidden');
+        document.getElementById('quiz-screen').classList.remove('hidden');
+        showQuestion();
+    }
+
+    function showQuestion() {
+        const q = questions[currentIdx];
+        document.getElementById('question-text').innerText = q.q;
+        document.getElementById('step-counter').innerText = `Question ${currentIdx + 1}/${questions.length}`;
+        document.getElementById('progress-bar').style.width = ((currentIdx + 1) / questions.length * 100) + "%";
+
+        const container = document.getElementById('options-container');
+        container.innerHTML = "";
+        q.options.forEach((opt, i) => {
+            const btn = document.createElement('div');
+            btn.className = "option-btn";
+            btn.innerText = opt;
+            btn.onclick = () => selectOption(i, btn);
+            container.appendChild(btn);
+        });
+        document.getElementById('next-btn').innerText =
+            currentIdx === questions.length - 1 ? "Finaliser et Envoyer" : "Question suivante";
+    }
+
+    function selectOption(index, btn) {
+        selectedOption = index;
+        document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+    }
+
+    function nextQuestion() {
+        if (selectedOption === null) return alert("Choisissez une réponse !");
+
+        userAnswers.push(selectedOption);
+        if (selectedOption === questions[currentIdx].ans) score++;
+
+        if (currentIdx < questions.length - 1) {
+            currentIdx++;
+            selectedOption = null;
+            showQuestion();
+        } else {
+            sendResults();
+        }
+    }
+
+    function sendResults() {
+        const formData = new FormData();
+        formData.append("Nom", userName);
+        formData.append("Email", userEmail);
+        formData.append("Type Quiz", "Programmation Arduino");
+        formData.append("Score Final", score + "/10");
+
+        fetch("https://formspree.io/f/mrebnnlk", {
+            method: "POST",
+            body: formData,
+            headers: { 'Accept': 'application/json' }
+        }).then(() => {
+            showFinalScreen();
+        }).catch(() => {
+            showFinalScreen();
+        });
+    }
+
+    function showFinalScreen() {
+        document.getElementById('quiz-screen').classList.add('hidden');
+        document.getElementById('result-screen').classList.remove('hidden');
+
+        const scoreDisplay = document.getElementById('score-display');
+        scoreDisplay.innerText = `Score Programmation : ${score} / ${questions.length}`;
+        scoreDisplay.style.color = score >= 7 ? "var(--success)" : "var(--error)";
+
+        const listContainer = document.getElementById('final-list');
+        listContainer.innerHTML = "";
+        questions.forEach((q, i) => {
+            const isCorrect = userAnswers[i] === q.ans;
+            const div = document.createElement('div');
+            div.className = `result-item ${isCorrect ? 'res-correct' : 'res-wrong'}`;
+            div.innerHTML = `
+                <strong>${i + 1}. ${q.q}</strong><br>
+                Votre réponse : ${q.options[userAnswers[i]]}
+                ${!isCorrect ? `<span class="correction">Correction : ${q.options[q.ans]}</span>` : ''}
+            `;
+            listContainer.appendChild(div);
+        });
+    }
+</script>
+
+</body>
+</html>
+
